@@ -102,7 +102,7 @@ class ScreenshotLogger:
     def _generate_name(self):
         rand = ''. join (random.choices(string.ascii_uppercase + string.digits, k=7))
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        return f"screenshot_{rand}_{timestamp}.png"
+        return f"screenshot{timestamp}.png"
 
     def take_screenshot(self):
         print("[*] Taking Screenshot...")
