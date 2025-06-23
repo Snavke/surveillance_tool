@@ -13,13 +13,12 @@ app.use(bodyParser.json());
 // === Screenshot Upload Setup ===
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const dir = "./Screenshot Uploads";
+    const dir = "./extracted_screenshot";
     if (!fs.existsSync(dir)) fs.mkdirSync(dir);
     cb(null, dir);
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+    cb(null, file.originalname);
   }
 });
 const upload = multer({ storage: storage });
