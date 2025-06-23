@@ -1,2 +1,6 @@
 node_modules/
-
+extracted_screenshot/
+keyboard_capture.txt
+setup.py
+package-lock.json
+package.json
